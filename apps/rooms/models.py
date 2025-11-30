@@ -33,17 +33,13 @@ class Room(models.Model):
     bed_type = models.CharField(max_length=20, choices=BED_TYPES)
     number_of_beds = models.IntegerField(default=1)
 
-    # Pricing
     price_per_night = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='USD')
 
-    # Availability
     total_rooms = models.IntegerField(default=1)
 
-    # Features
     facilities = models.TextField(blank=True, help_text='Comma-separated (AC, TV, Balcony, etc.)')
 
-    # Status
     is_available = models.BooleanField(default=True)
 
 

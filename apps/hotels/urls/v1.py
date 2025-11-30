@@ -1,8 +1,11 @@
 from django.urls import path
-from apps.users.views.nana import home_view
 
-app_name = 'cars'
+from apps.hotels.views.hotel_detail_view import HotelDetailApiView
+from apps.hotels.views.hotels_list_view import HotelListCreateApiView
+
+app_name = 'hotels'
 
 urlpatterns = [
-    path('', home_view, name='home'),
+    path('', HotelListCreateApiView.as_view(), name='list-create'),
+    path('<int:pk>/', HotelDetailApiView.as_view(), name='detail'),
 ]

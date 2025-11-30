@@ -9,13 +9,7 @@ from apps.users.managers.user import CustomUserManager
 
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
-    ROLE_CHOICES = (
-        ('user', 'User'),
-        ('hotel_owner', 'Hotel Owner'),
-        ('cars_admin', 'Car Rental Owner'),
-        ('airline_company', 'Airline Admin'),
-        ('admin', 'Admin'),
-    )
+
 
     # Authentication fields
     email = models.EmailField(
@@ -40,7 +34,6 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     date_of_birth = models.DateField(null=True, blank=True)
 
     # Status fields
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
     is_active = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)
     is_phone_verified = models.BooleanField(default=False)

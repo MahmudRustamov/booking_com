@@ -1,16 +1,14 @@
 from django.contrib.contenttypes.fields import GenericRelation
-
-from apps.shared.models import BaseModel, Media
+from apps.shared.models import BaseModel
 from django.db import models
-from apps.users.models.user import User
 
 
-class HotelOwner(BaseModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class Owners(BaseModel):
     company_name = models.CharField(max_length=200)
     business_license = models.CharField(max_length=100)
     tax_id = models.CharField(max_length=100)
     bank_account = models.CharField(max_length=100)
+    email = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.company_name
@@ -19,8 +17,6 @@ class HotelOwner(BaseModel):
     class Meta:
         verbose_name = 'hotel owner'
         verbose_name_plural = 'hotel owners'
-
-
 
 
 class HotelsModel(BaseModel):
@@ -40,7 +36,7 @@ class HotelsModel(BaseModel):
         (5, '5 Stars'),
     )
 
-    owner = models.ForeignKey(HotelOwner, on_delete=models.CASCADE, related_name='hotels')
+    owner = models.ForeignKey(Owners, on_delete=models.CASCADE, related_name='hotels')
     name = models.CharField(max_length=200)
     hotel_type = models.CharField(max_length=20, choices=HOTEL_TYPES, default='hotel')
     description = models.TextField()
