@@ -9,8 +9,6 @@ from apps.users.managers.user import CustomUserManager
 
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
-
-
     # Authentication fields
     email = models.EmailField(
         max_length=255, unique=True, null=True,

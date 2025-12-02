@@ -1,22 +1,7 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from apps.shared.models import BaseModel
 from django.db import models
-
-
-class Owners(BaseModel):
-    company_name = models.CharField(max_length=200)
-    business_license = models.CharField(max_length=100)
-    tax_id = models.CharField(max_length=100)
-    bank_account = models.CharField(max_length=100)
-    email = models.CharField(max_length=255, blank=True, null=True)
-
-    def __str__(self):
-        return self.company_name
-
-
-    class Meta:
-        verbose_name = 'hotel owner'
-        verbose_name_plural = 'hotel owners'
+from apps.users.models.owners import Owners
 
 
 class HotelsModel(BaseModel):
@@ -70,6 +55,8 @@ class HotelsModel(BaseModel):
 
     def __str__(self):
         return self.name
+
+
 
 
 

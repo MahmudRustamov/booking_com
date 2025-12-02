@@ -43,6 +43,8 @@ if settings.DEBUG:
     urlpatterns += [
         path("api/v1/docs/", schema_view, name="swagger-ui"),
         path("api/v1/redoc/", redoc_view, name="redoc"),
+        path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+        path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     ]
 else:
     # Require superuser login in prod
