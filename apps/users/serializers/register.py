@@ -1,5 +1,4 @@
-from datetime import timedelta
-from django.utils import timezone
+from django.contrib.auth import authenticate
 from rest_framework import serializers, generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,7 +8,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from apps.users.models.user import User, VerificationCode
 from apps.users.utils.code_generators import (
     generate_unique_username,
-    generate_secure_password,
     generate_verification_code,
     send_email
 )
@@ -17,17 +15,23 @@ from apps.users.utils.code_generators import (
 
 class RegisterSerializer(serializers.ModelSerializer):
     """User registration with email verification code"""
+    password_confirm = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ['email', 'phone_number']
+        fields = ['email', 'phone_number', 'password', 'password_confirm']
 
     def validate(self, attrs):
         email = attrs.get('email')
         phone = attrs.get('phone_number')
+        password = attrs.get('password')
+        password_confirm = attrs.get('password_confirm')
 
         if not email and not phone:
             raise serializers.ValidationError("Email or phone number is required")
+
+        if password != password_confirm:
+            raise serializers.ValidationError("Passwords do not match")
 
         if email and User.objects.filter(email=email).exists():
             raise serializers.ValidationError("This email is already registered")
@@ -37,19 +41,23 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return attrs
 
+
     def create(self, validated_data):
+        validated_data.pop('password_confirm')
+
         email = validated_data.get('email')
         phone = validated_data.get('phone_number')
+        password = validated_data.get('password')
 
         user = User.objects.create_user(
             email=email,
             phone_number=phone,
             username=generate_unique_username(),
-            password=generate_secure_password(),
+            password=password,
             is_active=False
         )
+        user.set_password(validated_data['password'])
 
-        # Generate and send verification code
         code = generate_verification_code()
         VerificationCode.objects.create(user=user, code=code)
         if email:
@@ -90,67 +98,35 @@ class VerifyCodeSerializer(serializers.Serializer):
         return attrs
 
 
-class RequestLoginCodeSerializer(serializers.Serializer):
+
+class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
+    password = serializers.CharField()
 
-    @staticmethod
-    def validate_email(value):
-        try:
-            user = User.objects.get(email=value)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("User with this email does not exist.")
-
-        if not user.is_active:
-            raise serializers.ValidationError("Please verify your email before logging in.")
-
-        return value
-
-    def create(self, validated_data):
-        user = User.objects.get(email=validated_data['email'])
-        code = generate_verification_code()
-        VerificationCode.objects.create(user=user, code=code)
-        send_email(receiver_email=user.email, body=f"Your verification code: {code}")
-        return user
-
-
-class VerifyLoginCodeSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    code = serializers.CharField(max_length=6)
 
     def validate(self, attrs):
-        email = attrs.get("email")
-        code = attrs.get("code")
+        credentials = {
+            "email": attrs.get('email'),
+            "password": attrs.get('password')
+        }
 
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("User not found.")
+        user = authenticate(request=self.context['request'], **credentials)
 
-        # 🔥 Email verify qilinmagan user login qila olmaydi
+        if user is None:
+            raise serializers.ValidationError("Email or password is incorrect.")
+
         if not user.is_active:
             raise serializers.ValidationError("Email not verified. Please verify before logging in.")
 
-        try:
-            vcode = VerificationCode.objects.filter(
-                user=user, code=code, used=False
-            ).latest("created_at")
-        except VerificationCode.DoesNotExist:
-            raise serializers.ValidationError("Invalid or expired code.")
-
-        if (timezone.now() - vcode.created_at) > timedelta(minutes=15):
-            raise serializers.ValidationError("Verification code expired.")
-
-        vcode.used = True
-        vcode.save()
-
-        attrs["user"] = user
+        attrs['user'] = user
         return attrs
 
 
 class LogoutAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request, *args, **kwargs):
         try:
             refresh_token = request.data.get("refresh")
             token = RefreshToken(refresh_token)
