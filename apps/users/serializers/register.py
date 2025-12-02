@@ -48,6 +48,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         email = validated_data.get('email')
         phone = validated_data.get('phone_number')
         password = validated_data.get('password')
+        print(password)
 
         user = User.objects.create_user(
             email=email,
@@ -56,7 +57,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=password,
             is_active=False
         )
-        user.set_password(validated_data['password'])
+        password = validated_data.get('password', "2")
+        print(password)
 
         code = generate_verification_code()
         VerificationCode.objects.create(user=user, code=code)
@@ -109,6 +111,7 @@ class LoginSerializer(serializers.Serializer):
             "email": attrs.get('email'),
             "password": attrs.get('password')
         }
+        print(f"{credentials.get('password')}  email- {credentials.get('email')}")
 
         user = authenticate(request=self.context['request'], **credentials)
 
