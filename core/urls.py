@@ -27,8 +27,9 @@ from apps.shared.utils.decorators import superuser_required
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('apps.urls.v1')),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
-
 
 # swagger and redoc settings
 schema_view = SpectacularSwaggerView.as_view(url_name='schema')
@@ -43,8 +44,6 @@ if settings.DEBUG:
     urlpatterns += [
         path("api/v1/docs/", schema_view, name="swagger-ui"),
         path("api/v1/redoc/", redoc_view, name="redoc"),
-        path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-        path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     ]
 else:
     # Require superuser login in prod
@@ -52,4 +51,3 @@ else:
         path("api/v1/docs/", superuser_required(schema_view), name="swagger-ui"),
         path("api/v1/redoc/", superuser_required(redoc_view), name="redoc"),
     ]
-

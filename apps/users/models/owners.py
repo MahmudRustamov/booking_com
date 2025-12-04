@@ -1,7 +1,7 @@
 from django.db import models
 
 from apps.shared.models import BaseModel
-
+from apps.users.models.user import User
 
 
 class Owners(BaseModel):
@@ -9,6 +9,14 @@ class Owners(BaseModel):
         ('hotel', 'Hotel Owner'),
         ('car', 'Car Owner'),
     ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='owners',
+        null=True,
+        blank=True
+    )
 
     company_name = models.CharField(max_length=200)
     business_license = models.CharField(max_length=100)

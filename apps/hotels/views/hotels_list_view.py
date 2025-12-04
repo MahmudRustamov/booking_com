@@ -4,7 +4,7 @@ from rest_framework.generics import ListCreateAPIView
 from apps.hotels.models.hotels import HotelsModel
 from apps.hotels.serializers.create_hotel import HotelCreateSerializer, HotelListSerializer
 from apps.hotels.serializers.hotel_detail import HotelDetailSerializer
-from apps.shared.permissions.mobile import IsMobileOrWebUser
+from apps.shared.permissions.mobile import IsMobileOrWebUser, IsHotelOwner
 from apps.shared.utils.custom_pagination import CustomPageNumberPagination
 from apps.shared.utils.custom_response import CustomResponse
 
@@ -12,7 +12,7 @@ from apps.shared.utils.custom_response import CustomResponse
 class HotelListCreateApiView(ListCreateAPIView):
     serializer_class = HotelCreateSerializer
     pagination_class = CustomPageNumberPagination
-    permission_classes = [IsMobileOrWebUser]
+    permission_classes = [IsMobileOrWebUser, IsHotelOwner]
 
     def get_queryset(self):
         return HotelsModel.objects.filter(is_active=True)
@@ -24,6 +24,7 @@ class HotelListCreateApiView(ListCreateAPIView):
             return HotelListSerializer
         else:
             return HotelDetailSerializer
+
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, context={'request': request})

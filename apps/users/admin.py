@@ -60,9 +60,50 @@ class DeviceAdmin(admin.ModelAdmin):
         }),
     )
 
+# @admin.register(User)
+# class CustomUserAdmin(UserAdmin):
+#     list_display = ('id', 'username', 'email', 'phone_number', 'is_active', 'is_staff')
+#     list_filter = ('is_active', 'is_staff', 'is_superuser')
+#     search_fields = ('username', 'email', 'phone_number')
+#     ordering = ('-created_at',)
+
+
+
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from apps.users.models.user import User
+
+
 @admin.register(User)
-class CustomUserAdmin(UserAdmin):
-    list_display = ('id', 'username', 'email', 'phone_number', 'is_active', 'is_staff')
+class UserAdmin(BaseUserAdmin):
+    model = User
+    list_display = ('id', 'phone_number', 'email', 'username', 'is_active', 'is_staff')
     list_filter = ('is_active', 'is_staff', 'is_superuser')
-    search_fields = ('username', 'email', 'phone_number')
-    ordering = ('-created_at',)
+
+    fieldsets = (
+        ('Auth Info', {
+            'fields': ('phone_number', 'email', 'username', 'password')
+        }),
+        ('Personal Info', {
+            'fields': ('first_name', 'last_name', 'middle_name', 'date_of_birth')
+        }),
+        ('Permissions', {
+            'fields': (
+                'is_active', 'is_staff', 'is_superuser',
+                'groups', 'user_permissions'
+            )
+        }),
+        ('Status', {
+            'fields': ('is_email_verified', 'is_phone_verified', 'is_deleted')
+        }),
+    )
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('phone_number', 'email', 'username', 'password1', 'password2'),
+        }),
+    )
+
+    search_fields = ('phone_number', 'email', 'username')
+    ordering = ('-id',)

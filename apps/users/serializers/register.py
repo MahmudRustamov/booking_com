@@ -105,25 +105,20 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
 
-
     def validate(self, attrs):
-        credentials = {
-            "email": attrs.get('email'),
-            "password": attrs.get('password')
-        }
-        print(f"{credentials.get('password')}  email- {credentials.get('email')}")
+        email = attrs.get('email')
+        password = attrs.get('password')
 
-        user = authenticate(request=self.context['request'], **credentials)
+        user = authenticate(email=email, password=password)
 
         if user is None:
             raise serializers.ValidationError("Email or password is incorrect.")
 
         if not user.is_active:
-            raise serializers.ValidationError("Email not verified. Please verify before logging in.")
+            raise serializers.ValidationError("Email is not verified.")
 
-        attrs['user'] = user
+        attrs["user"] = user
         return attrs
-
 
 class LogoutAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
