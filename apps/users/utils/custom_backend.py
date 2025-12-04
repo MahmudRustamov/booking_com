@@ -13,11 +13,11 @@ class MultiFieldBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         try:
             # Try to find user by email, username, or phone_number
-            user = User.objects.get(
+            user = User.objects.filter(
                 Q(email__iexact=username) |
                 Q(username__iexact=username) |
                 Q(phone_number=username)
-            )
+            ).first()
 
             if user.check_password(password) and user.is_active:
                 return user

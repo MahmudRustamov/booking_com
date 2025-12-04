@@ -14,7 +14,6 @@ from apps.users.utils.code_generators import (
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    """User registration with email verification code"""
     password_confirm = serializers.CharField(write_only=True)
 
     class Meta:
@@ -22,48 +21,30 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['email', 'phone_number', 'password', 'password_confirm']
 
     def validate(self, attrs):
-        email = attrs.get('email')
-        phone = attrs.get('phone_number')
-        password = attrs.get('password')
-        password_confirm = attrs.get('password_confirm')
-
-        if not email and not phone:
-            raise serializers.ValidationError("Email or phone number is required")
-
-        if password != password_confirm:
+        if attrs["password"] != attrs["password_confirm"]:
             raise serializers.ValidationError("Passwords do not match")
 
-        if email and User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("This email is already registered")
-
-        if phone and User.objects.filter(phone_number=phone).exists():
-            raise serializers.ValidationError("This phone number is already registered")
+        if User.objects.filter(email=attrs["email"]).exists():
+            raise serializers.ValidationError("This email already registered")
 
         return attrs
 
-
     def create(self, validated_data):
         validated_data.pop('password_confirm')
-
-        email = validated_data.get('email')
-        phone = validated_data.get('phone_number')
-        password = validated_data.get('password')
-        print(password)
+        password = validated_data.pop('password')
 
         user = User.objects.create_user(
-            email=email,
-            phone_number=phone,
             username=generate_unique_username(),
             password=password,
+            email=validated_data.get('email'),
+            phone_number=validated_data.get('phone_number'),
             is_active=False
         )
-        password = validated_data.get('password', "2")
-        print(password)
 
         code = generate_verification_code()
         VerificationCode.objects.create(user=user, code=code)
-        if email:
-            send_email(receiver_email=email, body=f"Your verification code: {code}")
+
+        send_email(receiver_email=user.email, body=f"Your code: {code}")
 
         return user
 
@@ -105,23 +86,19 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
 
-
     def validate(self, attrs):
-        credentials = {
-            "email": attrs.get('email'),
-            "password": attrs.get('password')
-        }
-        print(f"{credentials.get('password')}  email- {credentials.get('email')}")
+        email = attrs.get('email')
+        password = attrs.get('password')
 
-        user = authenticate(request=self.context['request'], **credentials)
+        user = authenticate(email=email, password=password)
 
         if user is None:
             raise serializers.ValidationError("Email or password is incorrect.")
 
         if not user.is_active:
-            raise serializers.ValidationError("Email not verified. Please verify before logging in.")
+            raise serializers.ValidationError("Email not verified.")
 
-        attrs['user'] = user
+        attrs["user"] = user
         return attrs
 
 

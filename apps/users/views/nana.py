@@ -2,4 +2,4 @@ from django.http import HttpResponse
 
 
 def home_view(request):
-    return HttpResponse("Salom, bu Home sahifa!")
+    return HttpResponse("My name is Mahmud")

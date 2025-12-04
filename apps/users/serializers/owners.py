@@ -1,34 +1,45 @@
 from rest_framework import serializers
 
+from apps.shared.mixins.translation_mixins import TranslatedFieldsWriteMixin
 from apps.users.models.owners import Owners
+from apps.users.models.user import User
 
 
-class OwnerCreateSerializer(serializers.ModelSerializer):
+class OwnersTranslationMixin:
+    """Shared configuration for OnBoarding serializers"""
+    translatable_fields = ['bio']
+    media_fields = ['image']
+
+
+class OwnersCreateSerializer(TranslatedFieldsWriteMixin, serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
     class Meta:
         model = Owners
         fields = [
-            "company_name",
-            "business_license",
-            "tax_id",
-            "bank_account",
-            "email",
-            "role",
+            'user',
+            'first_name',
+            'last_name',
+            'company_name',
+            'business_license',
+            'bank_account',
+            'email',
+            'bio',
+            'is_active',
         ]
 
 
-class OwnerListSerializer(serializers.ModelSerializer):
+class OwnersDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Owners
         fields = [
-            "id",
-            "company_name",
-            "email",
-            "role",
-            "created_at",
+            'id',
+            'first_name',
+            'last_name',
+            'company_name',
+            'business_license',
+            'bank_account',
+            'email',
+            'bio',
+            'is_active',
         ]
-
-
-class OwnerDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Owners
-        fields = "__all__"

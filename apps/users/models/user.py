@@ -9,20 +9,20 @@ from apps.users.managers.user import CustomUserManager
 
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
+    """
+    Custom user model with flexible authentication fields.
+    Role field removed.
+    """
+
     # Authentication fields
     email = models.EmailField(
-        max_length=255, unique=True, null=True,
-        blank=True, db_index=True
+        max_length=255, unique=True, null=True, blank=True, db_index=True
     )
-
     username = models.CharField(
-        max_length=150, unique=True, null=True,
-        blank=True, db_index=True
+        max_length=150, unique=True, null=True, blank=True, db_index=True
     )
-
     phone_number = models.CharField(
-        max_length=17, unique=True, null=True,
-        blank=True, db_index=True
+        max_length=17, unique=True, null=True, blank=True, db_index=True
     )
 
     # Profile fields
@@ -41,9 +41,9 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     objects = CustomUserManager()
 
-    # This field is used for authentication
-    USERNAME_FIELD = 'phone_number'  # Default to phone_number, but can authenticate with any
-    REQUIRED_FIELDS = []  # No required fields since we have flexible auth
+    # Authentication
+    USERNAME_FIELD = 'phone_number'
+    REQUIRED_FIELDS = []
 
     class Meta:
         db_table = 'users'
@@ -52,7 +52,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
         indexes = [
             models.Index(fields=['email'], name='users_email_idx'),
             models.Index(fields=['username'], name='users_username_idx'),
-            models.Index(fields=['phone_number'], name='users_phone_idx')
+            models.Index(fields=['phone_number'], name='users_phone_idx'),
         ]
         constraints = [
             models.CheckConstraint(
@@ -65,9 +65,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     @property
     def full_name(self):
-        """
-        Return the full name for the user
-        """
+        """Return full name of the user"""
         return f"{self.first_name} {self.last_name}".strip()
 
     def __str__(self):
@@ -75,20 +73,19 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
             return self.username
         elif self.phone_number:
             return self.phone_number
-
         return self.email
 
     def get_tokens(self, access_lifetime=None, refresh_lifetime=None):
-        """Generate JWT tokens for the user with optional custom expiration"""
+        """
+        Generate JWT tokens for the user with optional custom expiration.
+        """
         refresh = RefreshToken.for_user(self)
 
-        # Set custom lifetimes if provided
         if access_lifetime:
             refresh.access_token.set_exp(lifetime=access_lifetime)
         if refresh_lifetime:
             refresh.set_exp(lifetime=refresh_lifetime)
 
-        # Add custom claims
         refresh['email'] = self.email
         refresh['username'] = self.username
         refresh['user_id'] = self.id
@@ -104,11 +101,19 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
             'refresh_expires_at': refresh_expires_at.isoformat(),
         }
 
+
 class VerificationCode(models.Model):
+    """
+    Verification code model for email or phone verification
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='verification_codes')
     code = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     used = models.BooleanField(default=False)
 
     def is_valid(self):
+        """Check if the code is still valid and not used"""
         return (timezone.now() - self.created_at) < timedelta(minutes=15) and not self.used
+
+    def __str__(self):
+        return f"{self.user} - {self.code} - {'Used' if self.used else 'Active'}"

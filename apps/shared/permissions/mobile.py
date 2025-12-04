@@ -27,3 +27,10 @@ class IsMobileOrWebUser(BasePermission):
         request.device = device
 
         return device
+
+
+
+class IsHotelOwner(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return request.user.role == 'owner' and obj.owner == request.user
+
