@@ -11,6 +11,8 @@ class Owners(BaseModel):
         related_name='owners',
     )
 
+
+
     ROLE_CHOICES = [
         ('hotel', 'Hotel Owner'),
         ('car', 'Car Owner'),
