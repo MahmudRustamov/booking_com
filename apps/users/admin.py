@@ -10,157 +10,7 @@ from apps.users.models.user import User, VerificationCode
 from apps.users.models.device import Device, AppVersion, DeviceType
 
 
-# @admin.register(User)
-# class UserAdmin(admin.ModelAdmin):
-#     list_display = [
-#         'id_display',
-#         'created_at_display',
-#         'full_name_display',
-#         'phone_number',
-#         'email',
-#         'device_info_display',
-#         'last_visit_display',
-#         'status_display',
-#         'actions_display'
-#     ]
-#     list_filter = [
-#         'is_active',
-#         'is_email_verified',
-#         'is_phone_verified',
-#         'is_staff',
-#         'created_at',
-#         'updated_at'
-#     ]
-#     search_fields = [
-#         'phone_number',
-#         'email',
-#         'username',
-#         'first_name',
-#         'last_name'
-#     ]
-#     readonly_fields = [
-#         'created_at',
-#         'updated_at',
-#         'last_login',
-#         'password'
-#     ]
-#
-#     fieldsets = (
-#         ('Профиль', {
-#             'fields': (
-#                 'first_name',
-#                 'last_name',
-#                 'middle_name',
-#                 'date_of_birth'
-#             )
-#         }),
-#         ('Контактная информация', {
-#             'fields': (
-#                 'phone_number',
-#                 'email',
-#                 'username'
-#             )
-#         }),
-#         ('Статус верификации', {
-#             'fields': (
-#                 'is_email_verified',
-#                 'is_phone_verified'
-#             )
-#         }),
-#         ('Права и статус', {
-#             'fields': (
-#                 'is_active',
-#                 'is_staff',
-#                 'is_superuser',
-#                 'is_deleted'
-#             )
-#         }),
-#         ('Временные метки', {
-#             'fields': (
-#                 'created_at',
-#                 'updated_at',
-#                 'last_login'
-#             )
-#         }),
-#     )
-#
-#     def id_display(self, obj):
-#         """Display row number"""
-#         return f"{obj.id:02d}"
-#
-#     id_display.short_description = "№"
-#
-#     def created_at_display(self, obj):
-#         """Display creation date and time"""
-#         return obj.created_at.strftime('%H:%M / %d.%m.%Y')
-#
-#     created_at_display.short_description = "СОЗДАНО"
-#
-#     def full_name_display(self, obj):
-#         """Display full name with icon"""
-#         icon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#666"/></svg>'
-#         return format_html(
-#             '{} {}',
-#             mark_safe(icon),
-#             obj.full_name or 'Не указано'
-#         )
-#
-#     full_name_display.short_description = "Ф.И.О"
-#
-#     def device_info_display(self, obj):
-#         """Display device type and model"""
-#         device = obj.devices.filter(is_active=True).first()
-#         if device:
-#             return format_html(
-#                 '<div style="line-height: 1.4;">{}<br/><small style="color: #666;">{}</small></div>',
-#                 device.get_device_type_display(),
-#                 device.device_model
-#             )
-#         return '-'
-#
-#     device_info_display.short_description = "УСТРОЙСТВО"
-#
-#     def last_visit_display(self, obj):
-#         """Display last visit date"""
-#         device = obj.devices.filter(is_active=True).first()
-#         if device and device.last_login:
-#             return device.last_login.strftime('%H:%M / %d.%m.%Y')
-#         return '-'
-#
-#     last_visit_display.short_description = "ПОСЛЕДНЕЕ ПОСЕЩЕНИЕ"
-#
-#     def status_display(self, obj):
-#         """Display active status with toggle"""
-#         if obj.is_active:
-#             return format_html(
-#                 '<div style="width: 40px; height: 20px; background: #4CAF50; border-radius: 10px; position: relative;">'
-#                 '<div style="width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; right: 2px; top: 2px;"></div>'
-#                 '</div>'
-#             )
-#         else:
-#             return format_html(
-#                 '<div style="width: 40px; height: 20px; background: #ccc; border-radius: 10px; position: relative;">'
-#                 '<div style="width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; left: 2px; top: 2px;"></div>'
-#                 '</div>'
-#             )
-#
-#     status_display.short_description = "СТАТУС"
-#
-#     def actions_display(self, obj):
-#         """Display action buttons"""
-#         detail_url = reverse('admin:users_user_change', args=[obj.pk])
-#         return format_html(
-#             '<a href="{}" style="display: inline-block; width: 32px; height: 32px; background: #FFC107; border-radius: 4px; text-align: center; line-height: 32px; color: white; text-decoration: none; margin-right: 4px;">✎</a>'
-#             '<a href="#" style="display: inline-block; width: 32px; height: 32px; background: #F44336; border-radius: 4px; text-align: center; line-height: 32px; color: white; text-decoration: none;">🗑</a>',
-#             detail_url
-#         )
-#
-#     actions_display.short_description = "ДЕЙСТВИЯ"
-#
-#     def get_queryset(self, request):
-#         """Optimize queryset with related objects"""
-#         qs = super().get_queryset(request)
-#         return qs.prefetch_related('devices')
+
 
 
 @admin.register(Device)
@@ -437,9 +287,9 @@ admin.site.index_title = "Main Menu"
 
 
 @admin.register(User)
-class UserAdmin(UserAdmin):
+class UserAdmin(admin.ModelAdmin):
     model = User
-    list_display = ('id', 'phone_number', 'email', 'username', 'is_active', 'is_staff')
+    list_display = ('id', 'phone_number', 'email', 'username', 'role', 'is_active', 'is_staff')
     list_filter = ('is_active', 'is_staff', 'is_superuser')
 
     fieldsets = (
@@ -451,7 +301,7 @@ class UserAdmin(UserAdmin):
         }),
         ('Permissions', {
             'fields': (
-                'is_active', 'is_staff', 'is_superuser',
+                'role', 'is_active', 'is_staff', 'is_superuser',
                 'groups', 'user_permissions'
             )
         }),
@@ -463,12 +313,13 @@ class UserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('phone_number', 'email', 'username', 'password1', 'password2'),
+            'fields': ('phone_number', 'email', 'username', 'password1', 'password2', 'role'),
         }),
     )
 
     search_fields = ('phone_number', 'email', 'username')
     ordering = ('-id',)
+
 
 
 @admin.register(Owners)

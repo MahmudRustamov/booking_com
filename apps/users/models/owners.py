@@ -8,15 +8,8 @@ class Owners(BaseModel):
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        related_name='owners',
+        related_name='owner',
     )
-
-
-
-    ROLE_CHOICES = [
-        ('hotel', 'Hotel Owner'),
-        ('car', 'Car Owner'),
-    ]
 
     first_name = models.CharField(max_length=64)
     last_name = models.CharField(max_length=64)
@@ -26,7 +19,7 @@ class Owners(BaseModel):
     email = models.EmailField(max_length=255, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+
 
     def __str__(self):
         return f"{self.company_name} ({self.first_name} {self.last_name})"

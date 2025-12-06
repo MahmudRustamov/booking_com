@@ -17,7 +17,6 @@ class OwnerCreateSerializer(serializers.ModelSerializer):
             "bank_account",
             "email",
             "bio",
-            "role",
             "is_active",
         ]
 
@@ -29,7 +28,6 @@ class OwnerListSerializer(serializers.ModelSerializer):
             "id",
             "company_name",
             "email",
-            "role",
             "created_at",
         ]
 

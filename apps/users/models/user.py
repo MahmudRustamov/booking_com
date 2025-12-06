@@ -25,11 +25,18 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
         max_length=17, unique=True, null=True, blank=True, db_index=True
     )
 
+    ROLE_CHOICES = [
+        ('hotel', 'Hotel Owner'),
+        ('car', 'Car Owner'),
+        ('user', 'User'),
+    ]
+
     # Profile fields
     first_name = models.CharField(max_length=64, blank=True, null=True)
     last_name = models.CharField(max_length=64, blank=True, null=True)
     middle_name = models.CharField(max_length=64, blank=True, null=True)
     date_of_birth = models.DateField(null=True, blank=True)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
 
     # Status fields
     is_active = models.BooleanField(default=False)

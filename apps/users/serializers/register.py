@@ -118,3 +118,30 @@ class LogoutAPIView(generics.GenericAPIView):
             return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             return Response({"error": "Something went wrong."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.ReadOnlyField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "username",
+            "phone_number",
+            "first_name",
+            "last_name",
+            "middle_name",
+            "date_of_birth",
+            "role",
+            "is_active",
+            "is_email_verified",
+            "is_phone_verified",
+            "is_deleted",
+            "is_staff",
+            "is_superuser",
+            "full_name",
+        ]
+        read_only_fields = ["id", "full_name", "is_staff", "is_superuser"]
+
