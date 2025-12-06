@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+
 from apps.shared.exceptions.custom_exceptions import CustomException
 from apps.users.models.device import Device
 
@@ -30,14 +31,6 @@ class IsMobileOrWebUser(BasePermission):
 
 
 class IsHotelOwner(BasePermission):
-    message = "Only hotel owners are allowed to perform this action."
+    def has_object_permission(self, request, view, obj):
+        return request.user.role == 'hotel' and obj.user == request.user
 
-    def has_permission(self, request, view):
-        return hasattr(request.user, 'owners') and request.user.owners.role == 'hotel'
-
-
-class IsCarOwner(BasePermission):
-    message = "Only car owners are allowed to perform this action."
-
-    def has_permission(self, request, view):
-        return hasattr(request.user, 'owners') and request.user.owners.role == 'car'

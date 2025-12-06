@@ -1,18 +1,23 @@
 from rest_framework import serializers
-
 from apps.users.models.owners import Owners
+from apps.users.models.user import User
 
 
 class OwnerCreateSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
     class Meta:
         model = Owners
         fields = [
+            "user",
+            "first_name",
+            "last_name",
             "company_name",
             "business_license",
-            "tax_id",
             "bank_account",
             "email",
-            "role",
+            "bio",
+            "is_active",
         ]
 
 
@@ -23,7 +28,6 @@ class OwnerListSerializer(serializers.ModelSerializer):
             "id",
             "company_name",
             "email",
-            "role",
             "created_at",
         ]
 

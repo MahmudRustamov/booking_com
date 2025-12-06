@@ -1,83 +1,295 @@
-from django.contrib.auth.admin import UserAdmin
-
-from apps.users.models.user import User
 from django.contrib import admin
-from apps.users.models.device import Device, AppVersion
+from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+from django.utils import timezone
+
+from apps.users.models.owners import Owners
+from apps.users.models.user import User, VerificationCode
+from apps.users.models.device import Device, AppVersion, DeviceType
 
 
-@admin.register(AppVersion)
-class AppVersionAdmin(admin.ModelAdmin):
-    list_display = ('version', 'device_type', 'is_active', 'force_update', 'created_at')
-    list_filter = ('device_type', 'is_active', 'force_update')
-    search_fields = ('version',)
-    ordering = ('-created_at',)
-    readonly_fields = ('created_at', 'updated_at')
 
-    fieldsets = (
-        ('App Version Info', {
-            'fields': ('version', 'description', 'device_type')
-        }),
-        ('Status', {
-            'fields': ('is_active', 'force_update')
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-        }),
-    )
 
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
-    list_display = (
-        'id', 'user', 'device_type', 'device_model',
-        'ip_address', 'language', 'theme', 'is_active', 'last_login'
-    )
-    list_filter = (
-        'device_type', 'language', 'theme', 'is_active', 'is_push_notification'
-    )
-    search_fields = (
-        'device_model', 'device_id', 'user__username', 'user__email', 'ip_address'
-    )
-    readonly_fields = ('device_token', 'first_login', 'last_login', 'logged_out_at')
-    ordering = ('-last_login',)
-    autocomplete_fields = ('user', 'app_version')
+    list_display = [
+        'user_display',
+        'device_type_icon',
+        'device_model',
+        'ip_address',
+        'last_login_display',
+        'is_active_display',
+        'firebase_status'
+    ]
+    list_filter = [
+        'device_type',
+        'is_active',
+        'is_push_notification',
+        'theme',
+        'language',
+        'last_login'
+    ]
+    search_fields = [
+        'device_id',
+        'device_model',
+        'user__phone_number',
+        'user__email',
+        'ip_address'
+    ]
+    readonly_fields = [
+        'created_at',
+        'updated_at',
+        'first_login',
+        'last_login',
+        'device_token'
+    ]
 
     fieldsets = (
-        ('Device Info', {
+        ('Информация об устройстве', {
             'fields': (
-                'user', 'device_type', 'device_model', 'operation_version',
-                'device_id', 'ip_address', 'app_version'
+                'device_id',
+                'device_type',
+                'device_model',
+                'operation_version',
+                'app_version'
             )
         }),
-        ('Preferences', {
-            'fields': ('language', 'theme', 'is_push_notification', 'is_auth_password')
+        ('Пользователь', {
+            'fields': ('user',)
         }),
-        ('Status', {
-            'fields': ('is_active', 'logged_out_at', 'device_token')
+        ('Сетевая информация', {
+            'fields': (
+                'ip_address',
+                'visit_location'
+            )
         }),
-        ('Timestamps', {
-            'fields': ('first_login', 'last_login'),
+        ('Настройки', {
+            'fields': (
+                'language',
+                'theme',
+                'is_push_notification',
+                'is_auth_password'
+            )
+        }),
+        ('Статус сессии', {
+            'fields': (
+                'is_active',
+                'device_token',
+                'logged_out_at'
+            )
+        }),
+        ('Firebase', {
+            'fields': ('firebase_token',)
+        }),
+        ('Временные метки', {
+            'fields': (
+                'first_login',
+                'last_login',
+                'created_at',
+                'updated_at'
+            )
         }),
     )
 
-# @admin.register(User)
-# class CustomUserAdmin(UserAdmin):
-#     list_display = ('id', 'username', 'email', 'phone_number', 'is_active', 'is_staff')
-#     list_filter = ('is_active', 'is_staff', 'is_superuser')
-#     search_fields = ('username', 'email', 'phone_number')
-#     ordering = ('-created_at',)
+    def user_display(self, obj):
+        """Display user info"""
+        if obj.user:
+            return format_html(
+                '<div><strong>{}</strong><br/><small>{}</small></div>',
+                obj.user.full_name or 'Не указано',
+                obj.user.phone_number or obj.user.email
+            )
+        return 'Anonymous'
+
+    user_display.short_description = "Пользователь"
+
+    def device_type_icon(self, obj):
+        """Display device type with icon"""
+        if obj.device_type == DeviceType.ANDROID:
+            icon = '🤖'
+            color = '#3DDC84'
+        else:
+            icon = '🍎'
+            color = '#000000'
+        return format_html(
+            '<span style="font-size: 20px;">{}</span>',
+            icon
+        )
+
+    device_type_icon.short_description = "Тип"
+
+    def last_login_display(self, obj):
+        """Display last login time"""
+        return obj.last_login.strftime('%H:%M / %d.%m.%Y')
+
+    last_login_display.short_description = "Последнее посещение"
+
+    def is_active_display(self, obj):
+        """Display active status"""
+        if obj.is_active:
+            return format_html(
+                '<span style="color: #4CAF50; font-weight: bold;">●</span> Активно'
+            )
+        return format_html(
+            '<span style="color: #F44336; font-weight: bold;">●</span> Неактивно'
+        )
+
+    is_active_display.short_description = "Статус"
+
+    def firebase_status(self, obj):
+        """Display firebase token status"""
+        if obj.firebase_token:
+            return format_html(
+                '<span style="color: #4CAF50;">✓</span>'
+            )
+        return format_html(
+            '<span style="color: #F44336;">✗</span>'
+        )
+
+    firebase_status.short_description = "Firebase"
+
+    actions = ['logout_selected_devices', 'activate_selected_devices']
+
+    def logout_selected_devices(self, request, queryset):
+        """Logout selected devices"""
+        count = queryset.filter(is_active=True).update(
+            is_active=False,
+            logged_out_at=timezone.now()
+        )
+        self.message_user(
+            request,
+            f'Завершена сессия для {count} устройств.'
+        )
+
+    logout_selected_devices.short_description = "Завершить сессию для выбранных устройств"
+
+    def activate_selected_devices(self, request, queryset):
+        """Activate selected devices"""
+        count = queryset.update(
+            is_active=True,
+            logged_out_at=None
+        )
+        self.message_user(
+            request,
+            f'Активировано {count} устройств.'
+        )
+
+    activate_selected_devices.short_description = "Активировать выбранные устройства"
 
 
+@admin.register(AppVersion)
+class AppVersionAdmin(admin.ModelAdmin):
+    list_display = [
+        'version',
+        'device_type',
+        'is_active_display',
+        'force_update_display',
+        'devices_count',
+        'created_at'
+    ]
+    list_filter = [
+        'device_type',
+        'is_active',
+        'force_update',
+        'created_at'
+    ]
+    search_fields = ['version', 'description']
 
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from apps.users.models.user import User
+    fieldsets = (
+        ('Информация о версии', {
+            'fields': (
+                'version',
+                'device_type',
+                'description'
+            )
+        }),
+        ('Настройки', {
+            'fields': (
+                'is_active',
+                'force_update'
+            )
+        }),
+    )
+
+    def is_active_display(self, obj):
+        """Display active status"""
+        if obj.is_active:
+            return format_html(
+                '<span style="color: #4CAF50; font-weight: bold;">✓ Активна</span>'
+            )
+        return format_html(
+            '<span style="color: #999;">Неактивна</span>'
+        )
+
+    is_active_display.short_description = "Статус"
+
+    def force_update_display(self, obj):
+        """Display force update status"""
+        if obj.force_update:
+            return format_html(
+                '<span style="color: #F44336; font-weight: bold;">⚠ Обязательно</span>'
+            )
+        return format_html(
+            '<span style="color: #999;">Опционально</span>'
+        )
+
+    force_update_display.short_description = "Обновление"
+
+    def devices_count(self, obj):
+        """Count devices using this version"""
+        return obj.devices.count()
+
+    devices_count.short_description = "Устройств"
+
+
+@admin.register(VerificationCode)
+class VerificationCodeAdmin(admin.ModelAdmin):
+    list_display = [
+        'user',
+        'code',
+        'created_at',
+        'is_valid_display',
+        'used'
+    ]
+    list_filter = [
+        'used',
+        'created_at'
+    ]
+    search_fields = [
+        'code',
+        'user__phone_number',
+        'user__email'
+    ]
+    readonly_fields = ['created_at']
+
+    def is_valid_display(self, obj):
+        """Display if code is still valid"""
+        if obj.is_valid():
+            time_left = 15 - int((timezone.now() - obj.created_at).total_seconds() / 60)
+            return format_html(
+                '<span style="color: #4CAF50;">✓ Действителен ({} мин)</span>',
+                time_left
+            )
+        return format_html(
+            '<span style="color: #F44336;">✗ Истек</span>'
+        )
+
+    is_valid_display.short_description = "Статус"
+
+
+# Custom admin site configuration
+admin.site.site_header = "Booking.com Administration"
+admin.site.site_title = "Booking.com Admin"
+admin.site.index_title = "Main Menu"
 
 
 @admin.register(User)
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(admin.ModelAdmin):
     model = User
-    list_display = ('id', 'phone_number', 'email', 'username', 'is_active', 'is_staff')
+    list_display = ('id', 'phone_number', 'email', 'username', 'role', 'is_active', 'is_staff')
     list_filter = ('is_active', 'is_staff', 'is_superuser')
 
     fieldsets = (
@@ -89,7 +301,7 @@ class UserAdmin(BaseUserAdmin):
         }),
         ('Permissions', {
             'fields': (
-                'is_active', 'is_staff', 'is_superuser',
+                'role', 'is_active', 'is_staff', 'is_superuser',
                 'groups', 'user_permissions'
             )
         }),
@@ -101,9 +313,33 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('phone_number', 'email', 'username', 'password1', 'password2'),
+            'fields': ('phone_number', 'email', 'username', 'password1', 'password2', 'role'),
         }),
     )
 
     search_fields = ('phone_number', 'email', 'username')
     ordering = ('-id',)
+
+
+
+@admin.register(Owners)
+class OwnersAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'company_name', 'first_name', 'last_name', 'email', 'is_active', 'user'
+    )
+    list_filter = ('is_active',)
+    search_fields = ('company_name', 'first_name', 'last_name', 'email', 'user__username')
+    ordering = ('company_name',)
+    readonly_fields = ('id',)
+
+    fieldsets = (
+        ('User Info', {
+            'fields': ('user',)
+        }),
+        ('Owner Details', {
+            'fields': (
+                'first_name', 'last_name', 'company_name', 'business_license',
+                'bank_account', 'email', 'bio', 'is_active'
+            )
+        }),
+    )
