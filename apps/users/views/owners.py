@@ -1,8 +1,6 @@
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.generics import ListCreateAPIView
 from rest_framework import status
-from rest_framework.permissions import AllowAny
-
 from apps.users.models.owners import Owners
 from apps.users.models.user import User
 from apps.users.serializers.owners import (
@@ -15,7 +13,6 @@ from apps.shared.utils.custom_response import CustomResponse
 from apps.shared.permissions.mobile import IsMobileOrWebUser
 import logging
 
-from apps.users.serializers.register import UserSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -95,61 +92,6 @@ class OwnerListCreateApiView(ListCreateAPIView):
             data=serializer.data,
             status_code=status.HTTP_200_OK,
             request=request
-        )
-
-
-
-class ProfileRetrieveAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [AllowAny]
-    lookup_field = 'id'
-
-    # GET method
-    def get(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, context={"request": request})
-        return CustomResponse.success(
-            message_key="SUCCESS_MESSAGE",
-            data=serializer.data
-        )
-
-    # PUT method
-    def put(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return CustomResponse.success(
-                message_key="UPDATED",
-                data=serializer.data
-            )
-        return CustomResponse.error(
-            message_key="VALIDATION_ERROR",
-            errors=serializer.errors
-        )
-
-    # PATCH method
-    def patch(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return CustomResponse.success(
-                message_key="UPDATED",
-                data=serializer.data
-            )
-        return CustomResponse.error(
-            message_key="VALIDATION_ERROR",
-            errors=serializer.errors
-        )
-
-    def delete(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.delete()
-        return CustomResponse.success(
-            message_key="DELETED",
-            data={}
         )
 
 

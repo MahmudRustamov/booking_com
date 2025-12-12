@@ -1,10 +1,11 @@
 from rest_framework import generics, status
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from apps.shared.utils.custom_response import CustomResponse
 from apps.users.models.user import VerificationCode, User
-from apps.users.serializers.register import RegisterSerializer, LoginSerializer
+from apps.users.serializers.register import RegisterSerializer, LoginSerializer, UserSerializer
 
 
 class RegisterView(generics.CreateAPIView):
@@ -60,3 +61,59 @@ class VerifyLoginAPIView(generics.CreateAPIView):
             "access": str(refresh.access_token),
             "detail": "Login successful"
         }, status=status.HTTP_200_OK)
+
+
+
+
+class ProfileRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'id'
+
+    # GET method
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, context={"request": request})
+        return CustomResponse.success(
+            message_key="SUCCESS_MESSAGE",
+            data=serializer.data
+        )
+
+    # PUT method
+    def put(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return CustomResponse.success(
+                message_key="UPDATED",
+                data=serializer.data
+            )
+        return CustomResponse.error(
+            message_key="VALIDATION_ERROR",
+            errors=serializer.errors
+        )
+
+    # PATCH method
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return CustomResponse.success(
+                message_key="UPDATED",
+                data=serializer.data
+            )
+        return CustomResponse.error(
+            message_key="VALIDATION_ERROR",
+            errors=serializer.errors
+        )
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return CustomResponse.success(
+            message_key="DELETED",
+            data={}
+        )

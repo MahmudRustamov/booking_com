@@ -5,10 +5,15 @@ from rest_framework import serializers
 
 
 class HotelDetailSerializer(HotelTranslationMixin, TranslatedFieldsReadMixin, serializers.ModelSerializer):
+    images = serializers.SerializerMethodField()
+
     class Meta:
         model = HotelsModel
         fields = [
             'id', 'name', 'description', 'hotel_type', 'address', 'city', 'country', 'postal_code',
             'phone', 'email', 'website', 'star_rating', 'check_in_time', 'check_out_time',
-            'cancellation_policy', 'is_active',
+            'cancellation_policy', 'is_active', 'images'
         ]
+
+    def get_images(self, obj):
+        return [media.file.url for media in obj.media_files.all()]
