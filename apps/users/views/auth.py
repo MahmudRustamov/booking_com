@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny
@@ -7,7 +8,7 @@ from apps.shared.utils.custom_response import CustomResponse
 from apps.users.models.user import VerificationCode, User
 from apps.users.serializers.register import RegisterSerializer, LoginSerializer, UserSerializer
 
-
+@extend_schema(tags=['Auth'])
 class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
@@ -19,6 +20,7 @@ class RegisterView(generics.CreateAPIView):
         return Response({'detail': 'Verification code sent to email'}, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(tags=['Auth'])
 class VerifyEmailAPIView(generics.GenericAPIView):
     permission_classes = [AllowAny]
     @staticmethod
@@ -46,6 +48,8 @@ class VerifyEmailAPIView(generics.GenericAPIView):
 
         return Response({'detail': 'Email verified successfully.'})
 
+
+@extend_schema(tags=['Auth'])
 class VerifyLoginAPIView(generics.CreateAPIView):
     serializer_class = LoginSerializer
     permission_classes = []
@@ -65,13 +69,13 @@ class VerifyLoginAPIView(generics.CreateAPIView):
 
 
 
+@extend_schema(tags=['Auth'])
 class ProfileRetrieveAPIView(RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
     lookup_field = 'id'
 
-    # GET method
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, context={"request": request})
@@ -80,7 +84,6 @@ class ProfileRetrieveAPIView(RetrieveUpdateDestroyAPIView):
             data=serializer.data
         )
 
-    # PUT method
     def put(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
@@ -95,7 +98,6 @@ class ProfileRetrieveAPIView(RetrieveUpdateDestroyAPIView):
             errors=serializer.errors
         )
 
-    # PATCH method
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)

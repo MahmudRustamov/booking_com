@@ -7,7 +7,7 @@ from apps.shared.mixins.translation_mixins import TranslatedFieldsWriteMixin, Tr
 
 class HotelTranslationMixin:
     translatable_fields = ['name', 'description']
-    media_fields = ['media_files']
+    # media_fields = ['media_fields']
 
 
 class HotelCreateSerializer(TranslatedFieldsWriteMixin, serializers.ModelSerializer):

@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.generics import ListCreateAPIView
 from rest_framework import status
@@ -16,6 +17,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+@extend_schema(tags=['Owners'])
 class OwnerListCreateApiView(ListCreateAPIView):
     serializer_class = OwnerCreateSerializer
     pagination_class = CustomPageNumberPagination
@@ -95,7 +97,7 @@ class OwnerListCreateApiView(ListCreateAPIView):
         )
 
 
-
+@extend_schema(tags=['Owners'])
 class OwnerDetailApiView(RetrieveUpdateDestroyAPIView):
     queryset = Owners.objects.all()
     serializer_class = OwnerDetailSerializer

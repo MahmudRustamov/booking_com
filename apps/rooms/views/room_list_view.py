@@ -1,37 +1,36 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import ListCreateAPIView
 from rest_framework import status
-from apps.hotels.models.hotels import HotelsModel
-from apps.hotels.serializers.create_hotel import HotelCreateSerializer, HotelListSerializer
-from apps.hotels.serializers.hotel_detail import HotelDetailSerializer
+from apps.rooms.models import Room
+from apps.rooms.serializers.room_detail import RoomDetailSerializer
+from apps.rooms.serializers.room_list import RoomCreateSerializer, RoomListSerializer
 from apps.shared.utils.custom_pagination import CustomPageNumberPagination
 from apps.shared.utils.custom_response import CustomResponse
 import logging
 
 logger = logging.getLogger(__name__)
 
-
-@extend_schema(tags=['Hotels'])
-class HotelListCreateApiView(ListCreateAPIView):
-    serializer_class = HotelCreateSerializer
+@extend_schema(tags=['Rooms'])
+class RoomListCreateApiView(ListCreateAPIView):
+    serializer_class = RoomCreateSerializer
     pagination_class = CustomPageNumberPagination
 
     def get_queryset(self):
-        return HotelsModel.objects.filter(is_active=True)
+        return Room.objects.filter(is_available=True)
 
     def get_serializer_class(self):
         if self.request.method == "POST":
-            return HotelCreateSerializer
-        # Agar webdan GET bo‘lsa
+            return RoomCreateSerializer
+
         if self.request.method == "GET" and getattr(self.request, "device_type", None) == "WEB":
-            return HotelListSerializer
-        return HotelDetailSerializer
+            return RoomListSerializer
+        return RoomDetailSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        hotel = serializer.save()
-        response_serializer = HotelDetailSerializer(hotel, context={"request": request})
+        room = serializer.save()
+        response_serializer = RoomDetailSerializer(room, context={"request": request})
         return CustomResponse.success(
             message_key="CREATED",
             data=response_serializer.data,

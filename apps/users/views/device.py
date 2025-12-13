@@ -1,5 +1,6 @@
 from typing import Any
 
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status
 
 from apps.shared.permissions.mobile import IsMobileUser
@@ -8,6 +9,7 @@ from apps.users.models.device import Device
 from apps.users.serializers.device import DeviceRegisterSerializer
 
 
+@extend_schema(tags=['Devices'])
 class DeviceRegisterCreateAPIView(generics.CreateAPIView):
     """
     Register device anonymously (no login required).
@@ -34,6 +36,7 @@ class DeviceRegisterCreateAPIView(generics.CreateAPIView):
         )
 
 
+@extend_schema(tags=['Devices'])
 class DeviceListApiView(generics.ListAPIView):
     queryset = Device.objects.all()
     serializer_class = DeviceRegisterSerializer

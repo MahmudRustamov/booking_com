@@ -1,22 +1,21 @@
 from rest_framework import serializers
 from apps.rooms.models import Room
+from apps.shared.mixins.translation_mixins import TranslatedFieldsReadMixin
 
+class RoomTranslationMixin:
+    translatable_fields = ['name', 'description']
+    # media_fields = ['media_files']
 
-class RoomDetailSerializer(serializers.ModelSerializer):
-    media_files = serializers.SerializerMethodField()
+class RoomDetailSerializer(RoomTranslationMixin, TranslatedFieldsReadMixin, serializers.ModelSerializer):
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = Room
-        fields = '__all__'
-
-
-    @staticmethod
-    def get_media_files(obj):
-        return [
-            {
-                "id": media.id,
-                "file": media.file.url if media.file else None,
-                "type": media.media_type
-            }
-            for media in obj.media_files.all()
+        fields = [
+            'id', 'hotel', 'room_type', 'name', 'description', 'max_guests', 'bed_type',
+            'number_of_beds', 'price_per_night', 'currency', 'total_rooms', 'facilities',
+            'is_available', 'images'
         ]
+
+    def get_images(self, obj):
+        return [media.file.url for media in obj.media_files.all()]
