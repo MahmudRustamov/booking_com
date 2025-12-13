@@ -41,3 +41,11 @@ class HotelDetailApiView(RetrieveUpdateDestroyAPIView):
             message_key="UPDATED",
             data=response_serializer.data
         )
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return CustomResponse.success(
+            message_key="DELETED",
+            data=None
+        )

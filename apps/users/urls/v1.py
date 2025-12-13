@@ -1,6 +1,5 @@
 from django.urls import path
-from apps.users.serializers.register import LogoutAPIView
-from apps.users.views.auth import RegisterView, VerifyEmailAPIView, VerifyLoginAPIView
+from apps.users.views.auth import RegisterView, VerifyEmailAPIView, VerifyLoginAPIView, LogoutAPIView
 from apps.users.views.device import DeviceRegisterCreateAPIView, DeviceListApiView
 from apps.users.views.owners import OwnerListCreateApiView, OwnerDetailApiView
 from apps.users.views.auth import ProfileRetrieveAPIView

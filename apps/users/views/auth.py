@@ -1,12 +1,13 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.shared.utils.custom_response import CustomResponse
 from apps.users.models.user import VerificationCode, User
 from apps.users.serializers.register import RegisterSerializer, LoginSerializer, UserSerializer
+from rest_framework_simplejwt.exceptions import TokenError
 
 @extend_schema(tags=['Auth'])
 class RegisterView(generics.CreateAPIView):
@@ -119,3 +120,22 @@ class ProfileRetrieveAPIView(RetrieveUpdateDestroyAPIView):
             message_key="DELETED",
             data={}
         )
+
+@extend_schema(tags=['Auth'])
+class LogoutAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def post(request, *args, **kwargs):
+        try:
+            refresh_token = request.data.get("refresh")
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response({"detail": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
+
+        except TokenError:
+            return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({"error": "Something went wrong."}, status=status.HTTP_400_BAD_REQUEST)
+

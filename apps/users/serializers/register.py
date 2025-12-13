@@ -2,8 +2,7 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers, generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework_simplejwt.tokens import RefreshToken
+
 
 from apps.users.models.user import User, VerificationCode
 from apps.users.utils.code_generators import (
@@ -100,24 +99,6 @@ class LoginSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
-
-
-class LogoutAPIView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
-
-    @staticmethod
-    def post(request, *args, **kwargs):
-        try:
-            refresh_token = request.data.get("refresh")
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-
-            return Response({"detail": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
-
-        except TokenError:
-            return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception:
-            return Response({"error": "Something went wrong."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserSerializer(serializers.ModelSerializer):
