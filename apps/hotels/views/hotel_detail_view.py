@@ -1,6 +1,5 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
-from rest_framework import status
 from apps.hotels.models.hotels import HotelsModel
 from apps.hotels.serializers.create_hotel import HotelCreateSerializer
 from apps.hotels.serializers.hotel_detail import HotelDetailSerializer
