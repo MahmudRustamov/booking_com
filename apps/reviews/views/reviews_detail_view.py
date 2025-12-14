@@ -2,7 +2,6 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-
 from apps.reviews.models.hotel_reviews import HotelReview
 from apps.reviews.models.room_reviews import RoomReview
 from apps.reviews.serializers.reviews_detail import HotelReviewDetailSerializer, RoomReviewDetailSerializer
@@ -52,7 +51,8 @@ class HotelReviewDetailApiView(RetrieveUpdateDestroyAPIView):
         )
 
 
-class RoomReviewDetailAPIView(RetrieveUpdateDestroyAPIView):
+@extend_schema(tags=['Reviews'])
+class RoomReviewDetailApiView(RetrieveUpdateDestroyAPIView):
     queryset = RoomReview.objects.all()
     serializer_class = RoomReviewDetailSerializer
     permission_classes = [IsAuthenticated]
@@ -61,7 +61,7 @@ class RoomReviewDetailAPIView(RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return CustomResponse.success(
-            message_key="SUCCESS",
+            message_key="SUCCESS_MESSAGE",
             data=serializer.data
         )
 
@@ -93,4 +93,3 @@ class RoomReviewDetailAPIView(RetrieveUpdateDestroyAPIView):
             data=None,
             status_code=status.HTTP_204_NO_CONTENT
         )
-

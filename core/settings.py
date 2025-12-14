@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.shared',
     'apps.rooms',
     'apps.reviews',
+    'apps.orders',
 ]
 
 MIDDLEWARE = [

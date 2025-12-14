@@ -12,28 +12,10 @@ class HotelReviewDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'created_at']
 
 
-
-
 class RoomReviewCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomReview
         fields = ['rating', 'comment']
-
-    def create(self, validated_data):
-        room_id = self.context['view'].kwargs['room_id']
-        validated_data['room_id'] = room_id
-        validated_data['user'] = self.context['request'].user
-        return RoomReview.objects.create(**validated_data)
-
-
-class RoomReviewListSerializer(serializers.ModelSerializer):
-    user_email = serializers.EmailField(source='user.email', read_only=True)
-    hotel_name = serializers.CharField(source='room.hotel.name', read_only=True)
-    room_name = serializers.CharField(source='room.name', read_only=True)
-
-    class Meta:
-        model = RoomReview
-        fields = ['id', 'user_email', 'hotel_name', 'room_name', 'rating', 'comment', 'created_at']
 
 
 class RoomReviewDetailSerializer(serializers.ModelSerializer):
